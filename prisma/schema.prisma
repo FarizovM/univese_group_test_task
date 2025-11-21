@@ -1,0 +1,31 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model IngestedEvent {
+    idString String @id @default(uuid())
+
+    // Унікальний ID події для захисту від дублікатів (вимога завдання)
+    eventId String @unique
+
+    source    String // 'facebook' | 'tiktok'
+    eventType String // 'ad.view', 'purchase' etc.
+
+    // Зберігаємо оригінальний timestamp події
+    eventTime DateTime
+
+    // Весь об'єкт події зберігаємо як JSON для гнучкості
+    payload Json
+
+    // Опціонально: витягуємо суму покупки для швидкої аналітики
+    amount Decimal? @db.Decimal(10, 2)
+
+    createdAt DateTime @default(now())
+
+    @@index([source, eventType]) // Індекс для швидкості звітів
+}

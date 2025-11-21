@@ -1,0 +1,67 @@
+#version: "3.8"
+
+services:
+  # 1. База даних
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: analytics_db
+    ports:
+      - "5432:5432"
+    networks:
+      - martech-net
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d analytics_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Брокер повідомлень NATS
+  nats:
+    image: nats:latest
+    ports:
+      - "4222:4222" # Основний порт для клієнтів
+      - "8222:8222" # Моніторинг (http://localhost:8222)
+    networks:
+      - martech-net
+
+  # 3. Наш додаток (Backend)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Підключення до БД (зверніть увагу, host = ім'я сервісу 'postgres')
+      DATABASE_URL: postgresql://user:password@postgres:5432/analytics_db
+      # Підключення до NATS (host = ім'я сервісу 'nats')
+      NATS_URL: nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy # <--- МАГІЯ ТУТ
+      nats:
+        condition: service_started
+    networks:
+      - martech-net
+
+  # 4. Генератор подій (з завдання)
+  event-publisher:
+    image: andriiuni/events
+    environment:
+      # Вказуємо куди слати події. 'app' - це ім'я нашого сервісу вище.
+      EVENT_ENDPOINT: http://app:3000/webhook
+    depends_on:
+      - app
+    networks:
+      - martech-net
+
+networks:
+  martech-net:
+
+volumes:
+  pgdata:
