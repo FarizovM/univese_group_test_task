@@ -1,12 +1,10 @@
-#version: "3.8"
-
 services:
   # 1. База даних
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: analytics_db
     ports:
       - "5432:5432"
@@ -15,7 +13,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d analytics_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d analytics_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -38,7 +36,7 @@ services:
       - "3000:3000"
     environment:
       # Підключення до БД (зверніть увагу, host = ім'я сервісу 'postgres')
-      DATABASE_URL: postgresql://user:password@postgres:5432/analytics_db
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/analytics_db
       # Підключення до NATS (host = ім'я сервісу 'nats')
       NATS_URL: nats://nats:4222
     depends_on:
@@ -57,6 +55,17 @@ services:
       EVENT_ENDPOINT: http://app:3000/webhook
     depends_on:
       - app
+    networks:
+      - martech-net
+      
+# 5. Адмінка для БД (pgAdmin)
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
     networks:
       - martech-net
 
