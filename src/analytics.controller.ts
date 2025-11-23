@@ -7,7 +7,10 @@ export class AnalyticsController {
 
     @Get('stats')
     async getStats() {
-        const countBySource = await this.prisma.event.groupBy({
+
+
+
+        const selectSourceEventType = await this.prisma.event.groupBy({
             by: ['source', 'eventType'],
             _count: {
                 externalId: true,
@@ -17,6 +20,29 @@ export class AnalyticsController {
             },
         });
 
+        const breakdownSourceEventType = selectSourceEventType.map(el => ({
+            count: el._count.externalId ?? null,
+            amountSum: el._sum.amount ?? null,
+            source: el.source,
+            eventType: el.eventType,
+        }));
+
+        const selectSource = await this.prisma.event.groupBy({
+            by: ['source'],
+            _count: {
+                externalId: true,
+            },
+            _sum: {
+                amount: true,
+            },
+        })
+
+        const breakdownSource = selectSource.map(el => ({
+            source: el.source,
+            count: el._count.externalId ?? null,
+            amountSum: el._sum.amount ?? null,
+        }))
+
         const totalRevenue = await this.prisma.event.aggregate({
             _sum: {
                 amount: true,
@@ -25,7 +51,8 @@ export class AnalyticsController {
 
         return {
             revenue: totalRevenue._sum.amount,
-            breakdown: countBySource,
+            breakdownSource: breakdownSource,
+            breakdown: breakdownSourceEventType,
         };
     }
 
@@ -35,7 +62,7 @@ export class AnalyticsController {
         @Query('context') context?: string,
         @Query('limit') limit?: string,
     ) {
-        const take = limit ? parseInt(limit, 10) : 100;
+        const take = limit ? Math.min(parseInt(limit, 10), 100) : 100;
 
         const where: any = {};
         if (level) {
