@@ -98,10 +98,16 @@ export class AnalyticsController {
 
         }))
 
+        const total = await this.prisma.errorLog.aggregate({
+            _count: {
+                errorId: true,
+            }
+        })
+
         return {
-            errors,
+            total: total._count.errorId,
             stats: breakdownErrorStats,
-            total: errors.length,
+            errors
         };
     }
 }

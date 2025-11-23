@@ -148,6 +148,19 @@ Response Example:
 
 ```json
 {
+  "total": 7,
+   "stats": [
+    {
+      "level": "error",
+      "context": "EventProcessorController",
+      "count": 5
+    },
+    {
+      "level": "warn",
+      "context": "AppController",
+      "count": 2
+    }
+  ],
   "errors": [
     {
       "errorId": "550e8400-e29b-41d4-a716-446655440000",
@@ -177,20 +190,7 @@ Response Example:
       },
       "createdAt": "2024-01-15T10:25:00.000Z"
     }
-  ],
-  "stats": [
-    {
-      "level": "error",
-      "context": "EventProcessorController",
-      "count": 5
-    },
-    {
-      "level": "warn",
-      "context": "AppController",
-      "count": 2
-    }
-  ],
-  "total": 2
+  ]
 }
 ```
 
