@@ -6,7 +6,6 @@ generator client {
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
-    // Вказуємо, що ми працюємо в схемі integration
     schemas  = ["integration"]
 }
 
@@ -25,7 +24,6 @@ model Event {
     @@index([source, eventType])
     @@index([createdAt(sort: Desc)])
     @@index([payload], type: Gin)
-    // Налаштування таблиці та індексів
     @@map("events")
     @@schema("integration")
 }

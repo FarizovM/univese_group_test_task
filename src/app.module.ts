@@ -8,7 +8,7 @@ import { PrismaService } from './prisma.service';
 
 @Module({
   imports: [
-    // Реєструємо клієнт NATS, щоб мати можливість робити .emit()
+    // NATS Register NATS client 
     ClientsModule.register([
       {
         name: 'NATS_SERVICE',

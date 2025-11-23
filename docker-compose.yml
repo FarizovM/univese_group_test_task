@@ -1,5 +1,5 @@
 services:
-  # 1. База даних
+  # 1. Database
   postgres:
     image: postgres:15-alpine
     environment:
@@ -18,7 +18,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. Брокер повідомлень NATS
+  # 2. NATS
   nats:
     image: nats:latest
     ports:
@@ -27,7 +27,7 @@ services:
     networks:
       - martech-net
 
-  # 3. Наш додаток (Backend)
+  # 3. Backend(app)
   app:
     build:
       context: .
@@ -35,30 +35,27 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # Підключення до БД (зверніть увагу, host = ім'я сервісу 'postgres')
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/analytics_db
-      # Підключення до NATS (host = ім'я сервісу 'nats')
       NATS_URL: nats://nats:4222
     depends_on:
       postgres:
-        condition: service_healthy # <--- МАГІЯ ТУТ
+        condition: service_healthy
       nats:
         condition: service_started
     networks:
       - martech-net
 
-  # 4. Генератор подій (з завдання)
+  # 4. Event generator
   event-publisher:
     image: andriiuni/events
     environment:
-      # Вказуємо куди слати події. 'app' - це ім'я нашого сервісу вище.
       EVENT_ENDPOINT: http://app:3000/webhook
     depends_on:
       - app
     networks:
       - martech-net
-      
-# 5. Адмінка для БД (pgAdmin)
+
+  # 5. pgAdmin4
   pgadmin:
     image: dpage/pgadmin4
     environment:

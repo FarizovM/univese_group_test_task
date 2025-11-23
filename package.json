@@ -1,9 +1,9 @@
 {
-  "name": "app",
+  "name": "MarTechTestTask",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
+  "description": "Backend system that processes high-throughput event data coming from a Dockerized publisher via webhooks",
+  "author": "Maxim Farizov",
+  "private": false,
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",

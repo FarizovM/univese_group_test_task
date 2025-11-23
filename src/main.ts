@@ -13,7 +13,7 @@ async function bootstrap() {
     transport: Transport.NATS,
     options: {
       servers: [process.env.NATS_URL || 'nats://localhost:4222'],
-      queue: 'events_processor_queue', // Важливо! Це Queue Group
+      queue: 'events_processor_queue',
     },
   });
 

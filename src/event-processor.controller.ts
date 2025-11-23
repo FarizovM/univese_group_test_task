@@ -16,10 +16,9 @@ export class EventProcessorController {
 
             let eventTime = new Date(data.timestamp);
 
-            // Перевіряємо, чи дата валідна (isNaN спрацює, якщо дата "Invalid Date")
             if (isNaN(eventTime.getTime())) {
                 this.logger.warn(`⚠️ Invalid timestamp for event ${data.eventId}: "${data.timestamp}". Using current time.`);
-                eventTime = new Date(); // Fallback на поточний час
+                eventTime = new Date();
             }
 
             let amount = null;
