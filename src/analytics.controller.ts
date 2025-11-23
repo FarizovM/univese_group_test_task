@@ -21,10 +21,10 @@ export class AnalyticsController {
         });
 
         const breakdownSourceEventType = selectSourceEventType.map(el => ({
-            count: el._count.externalId ?? null,
-            amountSum: el._sum.amount ?? null,
             source: el.source,
             eventType: el.eventType,
+            count: el._count.externalId ?? null,
+            amountSum: el._sum.amount ?? null,
         }));
 
         const selectSource = await this.prisma.event.groupBy({
@@ -51,7 +51,7 @@ export class AnalyticsController {
 
         return {
             revenue: totalRevenue._sum.amount,
-            breakdownSource: breakdownSource,
+            breakdownSource,
             breakdown: breakdownSourceEventType,
         };
     }
