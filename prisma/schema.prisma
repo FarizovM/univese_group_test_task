@@ -27,3 +27,22 @@ model Event {
     @@map("events")
     @@schema("integration")
 }
+
+model ErrorLog {
+    errorId    String   @id @default(uuid()) @map("error_id")
+    level      String
+    message    String   @db.Text
+    context    String?
+    eventId    String?  @map("event_id")
+    errorCode  String?  @map("error_code")
+    stackTrace String?  @map("stack_trace") @db.Text
+    metadata   Json?
+    createdAt  DateTime @default(now()) @map("created_at")
+
+    @@index([level])
+    @@index([context])
+    @@index([createdAt(sort: Desc)])
+    @@index([eventId])
+    @@map("error_logs")
+    @@schema("integration")
+}

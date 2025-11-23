@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { EventProcessorController } from './event-processor.controller';
 import { AnalyticsController } from './analytics.controller';
 import { PrismaService } from './prisma.service';
+import { ErrorLogService } from './error-log.service';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { PrismaService } from './prisma.service';
     ]),
   ],
   controllers: [AppController, EventProcessorController, AnalyticsController],
-  providers: [PrismaService],
+  providers: [PrismaService, ErrorLogService],
 })
 export class AppModule { }
