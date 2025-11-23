@@ -1,4 +1,3 @@
-// src/analytics.controller.ts
 import { Controller, Get } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 
@@ -8,16 +7,14 @@ export class AnalyticsController {
 
     @Get('stats')
     async getStats() {
-        // Агрегація: Кількість подій по джерелам
-        const countBySource = await this.prisma.ingestedEvent.groupBy({
+        const countBySource = await this.prisma.event.groupBy({
             by: ['source', 'eventType'],
             _count: {
-                eventId: true,
+                externalId: true,
             },
         });
 
-        // Агрегація: Сума покупок
-        const totalRevenue = await this.prisma.ingestedEvent.aggregate({
+        const totalRevenue = await this.prisma.event.aggregate({
             _sum: {
                 amount: true,
             },

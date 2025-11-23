@@ -1,31 +1,31 @@
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["multiSchema", "postgresqlExtensions"]
 }
 
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
+    // Вказуємо, що ми працюємо в схемі integration
+    schemas  = ["integration"]
 }
 
-model IngestedEvent {
-    idString String @id @default(uuid())
+model Event {
+    eventId    String   @id @default(uuid()) @map("event_id")
+    externalId String   @unique @map("external_id")
+    source     String
+    eventType  String   @map("event_type")
+    eventTime  DateTime @map("event_time")
+    payload    Json
+    amount     Decimal? @db.Decimal
+    createdAt  DateTime @default(now()) @map("created_at")
 
-    // Унікальний ID події для захисту від дублікатів (вимога завдання)
-    eventId String @unique
-
-    source    String // 'facebook' | 'tiktok'
-    eventType String // 'ad.view', 'purchase' etc.
-
-    // Зберігаємо оригінальний timestamp події
-    eventTime DateTime
-
-    // Весь об'єкт події зберігаємо як JSON для гнучкості
-    payload Json
-
-    // Опціонально: витягуємо суму покупки для швидкої аналітики
-    amount Decimal? @db.Decimal(10, 2)
-
-    createdAt DateTime @default(now())
-
-    @@index([source, eventType]) // Індекс для швидкості звітів
+    @@index([externalId])
+    @@index([eventTime])
+    @@index([source, eventType])
+    @@index([createdAt(sort: Desc)])
+    @@index([payload], type: Gin)
+    // Налаштування таблиці та індексів
+    @@map("events")
+    @@schema("integration")
 }

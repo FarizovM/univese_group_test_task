@@ -1,4 +1,3 @@
-// src/event-processor.controller.ts
 import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { PrismaService } from './prisma.service';
@@ -12,8 +11,6 @@ export class EventProcessorController {
     @EventPattern('event.process')
     async handleEvent(@Payload() data: any) {
         try {
-            // Логіка витягування суми (Amount) для звітності
-            // Це спрощена логіка, в реальності треба дивитися типи
             let amount = null;
 
             if (data.source === 'tiktok' && data.data?.engagement?.purchaseAmount) {
@@ -22,11 +19,9 @@ export class EventProcessorController {
                 amount = data.data.engagement.purchaseAmount;
             }
 
-            // Збереження в БД
-            // Використовуємо create, але знаємо про constraints
-            await this.prisma.ingestedEvent.create({
+            await this.prisma.event.create({
                 data: {
-                    eventId: data.eventId,
+                    externalId: data.eventId,
                     source: data.source,
                     eventType: data.eventType,
                     eventTime: new Date(data.timestamp),
@@ -35,16 +30,11 @@ export class EventProcessorController {
                 },
             });
 
-            // this.logger.log(`Event ${data.eventId} processed`);
-
         } catch (error) {
-            // Обробка дублікатів (P2002 - код помилки Unique constraint у Prisma)
             if (error.code === 'P2002') {
                 this.logger.warn(`Duplicate event skipped: ${data.eventId}`);
             } else {
                 this.logger.error(`Error processing event: ${error.message}`);
-                // В реальному проді тут можна кинути виключення, 
-                // щоб NATS спробував доставити повідомлення ще раз (Retry)
             }
         }
     }
