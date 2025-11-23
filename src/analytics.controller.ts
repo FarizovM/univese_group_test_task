@@ -58,11 +58,14 @@ export class AnalyticsController {
 
     @Get('errors')
     async getErrors(
+        @Query('page') page?: string,
         @Query('level') level?: string,
         @Query('context') context?: string,
         @Query('limit') limit?: string,
     ) {
-        const take = limit ? Math.min(parseInt(limit, 10), 100) : 100;
+        const take = limit ? Math.min(parseInt(limit, 10), 100) : 50;
+        const pageNumber = page ? Math.max(parseInt(page, 10), 1) : 1;
+        const skip = take * (pageNumber - 1) || 0;
 
         const where: any = {};
         if (level) {
@@ -74,6 +77,7 @@ export class AnalyticsController {
 
         const errors = await this.prisma.errorLog.findMany({
             where,
+            skip,
             take,
             orderBy: {
                 createdAt: 'desc',
@@ -87,9 +91,16 @@ export class AnalyticsController {
             },
         });
 
+        const breakdownErrorStats = errorStats.map(el => ({
+            count: el._count.errorId,
+            level: el?.level,
+            context: el?.context
+
+        }))
+
         return {
             errors,
-            stats: errorStats,
+            stats: breakdownErrorStats,
             total: errors.length,
         };
     }

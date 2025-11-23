@@ -25,23 +25,26 @@
 
 ## ✨ Key Features
 
-### 🚀 Scalability:
+### 🚀 Scalability
+
 - Підтримка запуску кількох екземплярів додатку
 - Використання NATS Queue Groups для балансування навантаження між воркерами.
 
-### 🛡 Resilience:
+### 🛡 Resilience
+
 - Docker Healthchecks: Сервіси чекають повної готовності БД перед стартом.
 - Automatic Restarts: Політики restart: always/on-failure для відновлення після збоїв.
 - Error Handling: Обробка дублікатів  та невалідних форматів дати без падіння воркера.
 - Logging: Логування і зберігання помилок, івентів які надходять.
 
-### ⚡ Performance:
+### ⚡ Performance
+
 - Batch Processing: Підтримка прийому масивів подій (batch insert) на рівні HTTP.
 - Payload Handling: Налаштовані ліміти до 50MB для HTTP та NATS.
 - Non-blocking I/O: Асинхронна відправка в чергу без очікування запису в БД.
 - Indexing: Індексована і оптимізована БД.
 
-### 🔍 Validation:
+### 🔍 Validation
 
 - Строга типізація через DTO (class-validator).
 - Фільтрація "битих" івентів на вході (Fail Fast).
@@ -53,6 +56,7 @@
 1. Запуск (One Command)
 
 Команда підніме всю інфраструктуру, створить базу даних, застосує міграції та запустить додаток.
+
 ```bash
 docker-compose up --build
 ```
@@ -60,26 +64,30 @@ docker-compose up --build
 2. Зупинка та очищення
 
 Якщо потрібно скинути базу даних та почати з нуля:
+
 ```bash
 docker-compose down -v
 ```
 
 3. Логи
 Якщо потрібно переглнути логи:
+
 ```bash
 docker-compose logs -f app
 ```
-
 
 ## 📡 API Endpoints
 
 ### 1. Webhook (Ingestion)
 
 Приймає події від генератора.
+
 - URL: `POST` ```http://localhost:3000/webhook```
 - Body: `JSON` Object або Array of Objects.
 - Response: 202 Accepted
+
 ---
+
 ### 2. Analytics (Reporting)
 
 Отримання агрегованої статистики.
@@ -87,6 +95,7 @@ docker-compose logs -f app
 URL: `GET` ```http://localhost:3000/analytics/stats```
 
 Response Example:
+
 ```json
 {
   "revenue": "12500.50",
@@ -104,22 +113,98 @@ Response Example:
       "amountSum":null
     }
   ],
-  "breakdown":[]
-  
+  "breakdown":[{ 
+      "source": "facebook", 
+      "count": 150,
+      "amountSum":"12500.50"
+    },
+    { 
+      "source": "tiktok", 
+      "count": 45,
+      "amountSum":null
+    }
+  ]
 }
 ```
 
-🗄 Database & Management
+---
 
-У проект включено pgAdmin 4 для зручного перегляду даних.
+### 3. Errors List
 
-URL: http://localhost:5050
+Отримання переліку помилок із можливістю фільтрації.
 
-Login: admin@admin.com
+URL: `GET` ```http://localhost:3000/analytics/errors```
+
+Query params:
+
+|Назва|Тип|Опис|
+|---|---|---|
+|level|`String`|Фільтр за рівнем помилки: `error`, `warn`, `info`|
+|context|`String`|Фільтр за контекстом (назва контролера/сервісу, наприклад: `AppController`, `EventProcessorController`)|
+|limit|`Integer`|Максимальна кількість записів (максимум 100, за замовчуванням 50)|
+|page|`Integer`|Сторіка (номер сторіки відображення, за замовченням 1)|
+
+Response Example:
+
+```json
+{
+  "errors": [
+    {
+      "errorId": "550e8400-e29b-41d4-a716-446655440000",
+      "level": "error",
+      "message": "Error saving event: Connection timeout",
+      "context": "EventProcessorController",
+      "eventId": "event-123",
+      "errorCode": "ETIMEDOUT",
+      "stackTrace": "Error: Connection timeout\n    at ...",
+      "metadata": {
+        "eventType": "purchase",
+        "source": "facebook"
+      },
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "errorId": "660e8400-e29b-41d4-a716-446655440001",
+      "level": "warn",
+      "message": "Duplicate event skipped: event-456",
+      "context": "EventProcessorController",
+      "eventId": "event-456",
+      "errorCode": "P2002",
+      "stackTrace": null,
+      "metadata": {
+        "eventType": "ad.click",
+        "source": "tiktok"
+      },
+      "createdAt": "2024-01-15T10:25:00.000Z"
+    }
+  ],
+  "stats": [
+    {
+      "level": "error",
+      "context": "EventProcessorController",
+      "count": 5
+    },
+    {
+      "level": "warn",
+      "context": "AppController",
+      "count": 2
+    }
+  ],
+  "total": 2
+}
+```
+
+## 🗄 Database & Management
+
+У проект включено `pgAdmin 4` для зручного перегляду даних.
+
+URL: <http://localhost:5050>
+
+Login: <admin@admin.com>
 
 Password: admin
 
-Налаштування підключення в pgAdmin:
+Налаштування підключення в `pgAdmin`:
 
 Host: postgres (ім'я сервісу в Docker мережі)
 
@@ -129,7 +214,7 @@ Password: postgres
 
 Database: analytics_db
 
-Важливо: Дані знаходяться у схемі integration (не public).
+Важливо: Дані знаходяться у схемі integration.
 Шлях: Servers > [Your Server] > Databases > analytics_db > Schemas > integration > Tables > events.
 
 📝 Розробка та рішення
