@@ -1,5 +1,4 @@
-// src/app.controller.ts
-import { Controller, Post, Body, Inject, Logger } from '@nestjs/common';
+import { Controller, Post, Body, Inject, Logger, HttpCode, HttpStatus } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateEventDto } from './dto/create-event.dto';
 
@@ -8,19 +7,22 @@ export class AppController {
   private readonly logger = new Logger(AppController.name);
 
   constructor(
-    // Ін'єктимо клієнт для відправки повідомлень в NATS
     @Inject('NATS_SERVICE') private readonly natsClient: ClientProxy,
   ) { }
 
   @Post('webhook')
-  async handleWebhook(@Body() event: CreateEventDto) {
-    // Патерн "Fire and Forget". 
-    // Ми не чекаємо, поки база даних збереже запис. 
-    // Ми просто кидаємо в чергу і кажемо "Ок".
+  @HttpCode(HttpStatus.ACCEPTED)
+  async handleWebhook(@Body() body: any) {
+    const events = Array.isArray(body) ? body : [body];
 
-    this.natsClient.emit('event.process', event);
+    //this.logger.log(`Received batch of ${events.length} events`);
 
-    // Це дає високу пропускну здатність (High Throughput)
-    return { status: 'received' };
+    events.forEach((event) => {
+      this.natsClient.emit('event.process', event).subscribe({
+        error: (err) => this.logger.error(`❌ NATS Emit Error: ${err.message}`),
+      });
+    });
+
+    return { status: 'queued', count: events.length };
   }
 }

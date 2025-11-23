@@ -10,7 +10,18 @@ export class EventProcessorController {
 
     @EventPattern('event.process')
     async handleEvent(@Payload() data: any) {
+        //this.logger.log(` Received event via NATS: ${data.eventId}`);
+
         try {
+
+            let eventTime = new Date(data.timestamp);
+
+            // Перевіряємо, чи дата валідна (isNaN спрацює, якщо дата "Invalid Date")
+            if (isNaN(eventTime.getTime())) {
+                this.logger.warn(`⚠️ Invalid timestamp for event ${data.eventId}: "${data.timestamp}". Using current time.`);
+                eventTime = new Date(); // Fallback на поточний час
+            }
+
             let amount = null;
 
             if (data.source === 'tiktok' && data.data?.engagement?.purchaseAmount) {
@@ -24,17 +35,18 @@ export class EventProcessorController {
                     externalId: data.eventId,
                     source: data.source,
                     eventType: data.eventType,
-                    eventTime: new Date(data.timestamp),
+                    eventTime: eventTime,
                     payload: data,
                     amount: amount ? parseFloat(amount) : null,
                 },
             });
+            this.logger.log(`✅ Successfully saved event: ${data.eventId}`);
 
         } catch (error) {
             if (error.code === 'P2002') {
-                this.logger.warn(`Duplicate event skipped: ${data.eventId}`);
+                this.logger.warn(`⚠️ Duplicate event skipped: ${data.eventId}`);
             } else {
-                this.logger.error(`Error processing event: ${error.message}`);
+                this.logger.error(`❌ Error saving event: ${error.message}`, error.stack);
             }
         }
     }
