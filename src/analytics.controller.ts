@@ -1,15 +1,21 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 
+interface TopCountryResult {
+  country: string;
+  total_events: number;
+}
+
+interface TopDeviceResult {
+  device: string;
+  total_events: number;
+}
 @Controller('analytics')
 export class AnalyticsController {
     constructor(private readonly prisma: PrismaService) { }
 
     @Get('stats')
     async getStats() {
-
-
-
         const selectSourceEventType = await this.prisma.event.groupBy({
             by: ['source', 'eventType'],
             _count: {
@@ -59,6 +65,7 @@ export class AnalyticsController {
         });
 
         return {
+            status: 200,
             totalEvents,
             revenue: (totalRevenue._sum.amount) ? Number(totalRevenue._sum.amount) : null,
             breakdownSource,
@@ -115,9 +122,50 @@ export class AnalyticsController {
         })
 
         return {
+            status: 200,
             total: total._count.errorId,
             stats: breakdownErrorStats,
             errors
         };
+    }
+
+    @Get('top-countries')
+    async getTopCountries(
+        @Query('limit') limit?: string,
+    ) {
+        const formattedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 10;
+
+        const stats = await this.prisma.$queryRaw<TopCountryResult[]>`
+        SELECT 
+            payload->'data'->'user'->'location'->>'country' as country,
+            COUNT(*)::integer as "totalEvents"
+        FROM integration.events
+        WHERE payload->'data'->'user'->'location'->>'country' IS NOT NULL
+        GROUP BY country
+        ORDER BY "totalEvents" DESC
+        LIMIT ${formattedLimit}
+        `;
+
+        return {status: 200, stats};
+    }
+
+    @Get('top-devices')
+    async getTopDevices(
+         @Query('limit') limit?: string,
+    ) {
+         const formattedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 10;
+
+        const stats = await this.prisma.$queryRaw<TopDeviceResult[]>`
+        SELECT 
+            payload->'data'->'engagement'->>'device' as device,
+            COUNT(*)::integer as "totalEvents"
+        FROM integration.events
+        WHERE payload->'data'->'engagement'->>'device' IS NOT NULL
+        GROUP BY device
+        ORDER BY "totalEvents" DESC
+        LIMIT ${formattedLimit}
+        `;
+
+        return {status: 200, stats};
     }
 }

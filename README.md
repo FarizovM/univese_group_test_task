@@ -196,6 +196,58 @@ Response Example:
 }
 ```
 
+---
+
+### 4. Top Countries
+
+Отримання топ-країн за кількістю подій (10 записів).
+
+- URL: `GET` ```http://localhost:3000/analytics/top-countries```
+
+Query params:
+
+|Назва|Тип|Опис|
+|---|---|---|
+|limit|`Integer`|Максимальна кількість записів (максимум 100, за замовчуванням 10)|
+
+Response Example:
+
+```json
+{
+  "status": 200,
+  "stats": [
+    { "country": "US", "totalEvents": 1200 },
+    { "country": "UA", "totalEvents": 300 }
+  ]
+}
+```
+
+---
+
+### 5. Top Devices
+
+Отримання статистики за типами девайсів (device).
+
+- URL: `GET` ```http://localhost:3000/analytics/top-devices```
+
+Query params:
+
+|Назва|Тип|Опис|
+|---|---|---|
+|limit|`Integer`|Максимальна кількість записів (максимум 100, за замовчуванням 10)|
+
+Response Example:
+
+```json
+{
+  "status": 200,
+  "stats": [
+    { "device": "mobile", "totalEvents": 1500 },
+    { "device": "desktop", "totalEvents": 800 }
+  ]
+}
+```
+
 ## 🗄 Database & Management
 
 У проект включено `pgAdmin 4` для зручного перегляду даних.
