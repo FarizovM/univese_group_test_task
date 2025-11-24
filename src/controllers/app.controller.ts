@@ -1,9 +1,9 @@
 import { Controller, Post, Body, Inject, Logger, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { CreateEventDto } from './dto/create-event.dto';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { ErrorLogService } from './error-log.service';
+import { CreateEventDto } from '../dto/create-event.dto';
+import { ErrorLogService } from '../services/error-log.service';
 
 @Controller()
 export class AppController {

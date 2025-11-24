@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
+import { PrismaService } from '../services/prisma.service';
 
 interface TopCountryResult {
     country: string;

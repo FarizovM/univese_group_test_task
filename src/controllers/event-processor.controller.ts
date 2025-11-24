@@ -1,9 +1,9 @@
 import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
-import { PrismaService } from './prisma.service';
-import { ErrorLogService } from './error-log.service';
-import { validateEventPayload } from './utils/event-validator';
-import { Event } from './types/events';
+import { PrismaService } from '../services/prisma.service';
+import { ErrorLogService } from '../services/error-log.service';
+import { validateEventPayload } from '../utils/event-validator';
+import { Event } from '../types/events';
 
 @Controller()
 export class EventProcessorController {

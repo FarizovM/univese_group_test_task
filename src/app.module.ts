@@ -1,11 +1,11 @@
 // src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { AppController } from './app.controller';
-import { EventProcessorController } from './event-processor.controller';
-import { AnalyticsController } from './analytics.controller';
-import { PrismaService } from './prisma.service';
-import { ErrorLogService } from './error-log.service';
+import { AppController } from './controllers/app.controller';
+import { EventProcessorController } from './controllers/event-processor.controller';
+import { AnalyticsController } from './controllers/analytics.controller';
+import { PrismaService } from './services/prisma.service';
+import { ErrorLogService } from './services/error-log.service';
 
 @Module({
   imports: [
