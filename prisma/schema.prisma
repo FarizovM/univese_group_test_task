@@ -1,0 +1,48 @@
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["multiSchema", "postgresqlExtensions"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+    schemas  = ["integration"]
+}
+
+model Event {
+    eventId    String   @id @default(uuid()) @map("event_id")
+    externalId String   @unique @map("external_id")
+    source     String
+    eventType  String   @map("event_type")
+    eventTime  DateTime @map("event_time")
+    payload    Json
+    amount     Decimal? @db.Decimal
+    createdAt  DateTime @default(now()) @map("created_at")
+
+    @@index([externalId])
+    @@index([eventTime])
+    @@index([source, eventType])
+    @@index([createdAt(sort: Desc)])
+    @@index([payload], type: Gin)
+    @@map("events")
+    @@schema("integration")
+}
+
+model ErrorLog {
+    errorId    String   @id @default(uuid()) @map("error_id")
+    level      String
+    message    String   @db.Text
+    context    String?
+    eventId    String?  @map("event_id")
+    errorCode  String?  @map("error_code")
+    stackTrace String?  @map("stack_trace") @db.Text
+    metadata   Json?
+    createdAt  DateTime @default(now()) @map("created_at")
+
+    @@index([level])
+    @@index([context])
+    @@index([createdAt(sort: Desc)])
+    @@index([eventId])
+    @@map("error_logs")
+    @@schema("integration")
+}
