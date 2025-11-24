@@ -24,7 +24,7 @@ export class AnalyticsController {
             source: el.source,
             eventType: el.eventType,
             count: el._count.externalId ?? null,
-            amountSum: parseFloat(el._sum.amount) ?? null,
+            amountSum: (el._sum.amount) ? Number(el._sum.amount) : null,
         }));
 
         const selectSource = await this.prisma.event.groupBy({
@@ -40,7 +40,7 @@ export class AnalyticsController {
         const breakdownSource = selectSource.map(el => ({
             source: el.source,
             count: el._count.externalId ?? null,
-            amountSum: parseFloat(el._sum.amount) ?? null,
+            amountSum: (el._sum.amount ) ? Number(el._sum.amount) : null,
         }))
 
         const totalRevenue = await this.prisma.event.aggregate({
@@ -49,8 +49,18 @@ export class AnalyticsController {
             },
         });
 
+         const totalEvents = await this.prisma.event.aggregate({
+            _count:{
+                eventId: true,
+            },
+            _sum: {
+                amount: true,
+            },
+        });
+
         return {
-            revenue: totalRevenue._sum.amount,
+            totalEvents,
+            revenue: (totalRevenue._sum.amount) ? Number(totalRevenue._sum.amount) : null,
             breakdownSource,
             breakdown: breakdownSourceEventType,
         };

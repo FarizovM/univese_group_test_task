@@ -98,7 +98,8 @@ Response Example:
 
 ```json
 {
-  "revenue": "12500.50",
+  "totalEvents": 195,
+  "revenue": 12500.50,
   "breakdownSource": [
     { 
       "source": "facebook", 
