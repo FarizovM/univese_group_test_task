@@ -146,7 +146,7 @@ export class AnalyticsController {
         LIMIT ${formattedLimit}
         `;
 
-        return {status: 200, stats};
+        return {status: (stats?.length)? 200 : 204, stats};
     }
 
     @Get('top-devices')
@@ -166,6 +166,6 @@ export class AnalyticsController {
         LIMIT ${formattedLimit}
         `;
 
-        return {status: 200, stats};
+        return {status: (stats?.length)? 200 : 204, stats};
     }
 }
