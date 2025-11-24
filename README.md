@@ -113,7 +113,8 @@ Response Example:
       "amountSum":null
     }
   ],
-  "breakdown":[{ 
+  "breakdown":[
+    { 
       "source": "facebook", 
       "count": 150,
       "amountSum":"12500.50"
@@ -216,13 +217,3 @@ Database: analytics_db
 
 Важливо: Дані знаходяться у схемі integration.
 Шлях: Servers > [Your Server] > Databases > analytics_db > Schemas > integration > Tables > events.
-
-📝 Розробка та рішення
-
-Чому гібридне зберігання (JSONB)?
-
-Оскільки події з Facebook та TikTok мають різну структуру (engagement відрізняється), використання JSONB дозволяє гнучко зберігати вкладені дані без створення десятків зв'язаних таблиць (EAV патерн), при цьому зберігаючи можливість індексації (GIN Index) та швидкого пошуку по ключових полях.
-
-Обробка помилок (OOM Killer)
-
-При високому навантаженні та лімітованій пам'яті Docker (особливо на Windows/Mac), контейнери можуть падати з кодом 137. У docker-compose.yml налаштовані політики перезапуску, щоб система самовідновлювалася.
