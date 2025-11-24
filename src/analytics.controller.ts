@@ -129,6 +129,17 @@ export class AnalyticsController {
         };
     }
 
+    @Get('health')
+    async health() {
+        try {
+            // simple DB check
+            await this.prisma.$queryRaw`SELECT 1`;
+            return { status: 200, healthy: true, db: 'ok' };
+        } catch (err) {
+            return { status: 503, healthy: false, db: 'error', error: err.toString() };
+        }
+    }
+
     @Get('top-countries')
     async getTopCountries(
         @Query('limit') limit?: string,

@@ -248,6 +248,37 @@ Response Example:
 }
 ```
 
+---
+
+### c
+
+Прогонить швидку перевірку сервісу та БД.
+
+- URL: `GET` ```http://localhost:3000/health```
+
+Response Examples:
+
+`200 OK` (healthy):
+
+```json
+{
+  "status": 200,
+  "healthy": true,
+  "db": "ok"
+}
+```
+
+`503 Service Unavailable`:
+
+```json
+{
+  "status": 503,
+  "healthy": false,
+  "db": "error",
+  "error": "Connection timeout"
+}
+```
+
 ## 🗄 Database & Management
 
 У проект включено `pgAdmin 4` для зручного перегляду даних.
