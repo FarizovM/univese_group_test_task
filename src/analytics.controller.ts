@@ -2,13 +2,13 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 
 interface TopCountryResult {
-  country: string;
-  total_events: number;
+    country: string;
+    total_events: number;
 }
 
 interface TopDeviceResult {
-  device: string;
-  total_events: number;
+    device: string;
+    total_events: number;
 }
 @Controller('analytics')
 export class AnalyticsController {
@@ -47,17 +47,12 @@ export class AnalyticsController {
             const breakdownSource = selectSource.map(el => ({
                 source: el.source,
                 count: el._count.externalId ?? null,
-                amountSum: (el._sum.amount ) ? Number(el._sum.amount) : null,
+                amountSum: (el._sum.amount) ? Number(el._sum.amount) : null,
             }))
 
-            const totalRevenue = await this.prisma.event.aggregate({
-                _sum: {
-                    amount: true,
-                },
-            });
 
-            const totalEvents = await this.prisma.event.aggregate({
-                _count:{
+            const events = await this.prisma.event.aggregate({
+                _count: {
                     eventId: true,
                 },
                 _sum: {
@@ -67,8 +62,8 @@ export class AnalyticsController {
 
             return {
                 status: 200,
-                totalEvents,
-                revenue: (totalRevenue._sum.amount) ? Number(totalRevenue._sum.amount) : null,
+                totalEvents: events._count.eventId ?? null,
+                totalAmount: (events._sum.amount) ? Number(events._sum.amount) : null,
                 breakdownSource,
                 breakdown: breakdownSourceEventType,
             };
@@ -166,7 +161,7 @@ export class AnalyticsController {
             LIMIT ${formattedLimit}
             `;
 
-            return {status: (stats?.length)? 200 : 204, stats};
+            return { status: (stats?.length) ? 200 : 204, stats };
         } catch (err) {
             console.error('getErrors error', err);
             return { status: 500, error: 'Internal server error' };
@@ -175,7 +170,7 @@ export class AnalyticsController {
 
     @Get('top-devices')
     async getTopDevices(
-         @Query('limit') limit?: string,
+        @Query('limit') limit?: string,
     ) {
         const formattedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 10;
 
@@ -191,7 +186,7 @@ export class AnalyticsController {
             LIMIT ${formattedLimit}
             `;
 
-            return {status: (stats?.length)? 200 : 204, stats};
+            return { status: (stats?.length) ? 200 : 204, stats };
         } catch (err) {
             console.error('getErrors error', err);
             return { status: 500, error: 'Internal server error' };

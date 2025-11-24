@@ -98,8 +98,9 @@ Response Example:
 
 ```json
 {
+  "status": 200,
   "totalEvents": 195,
-  "revenue": 12500.50,
+  "totalAmount": 12500.50,
   "breakdownSource": [
     { 
       "source": "facebook", 
@@ -150,6 +151,7 @@ Response Example:
 
 ```json
 {
+  "status": 200,
   "total": 7,
    "stats": [
     {
@@ -328,4 +330,3 @@ erDiagram
     created_at timestamp_without_time_zone "Дата створення запису в БД"
   }
 ```
-
