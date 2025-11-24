@@ -36,7 +36,8 @@
 - Automatic Restarts: Політики restart: always/on-failure для відновлення після збоїв.
 - Error Handling: Обробка дублікатів  та невалідних форматів дати без падіння воркера.
 - Logging: Логування і зберігання помилок, івентів які надходять.
-- Rate limiting: `/webhook` (до 5000 req/min/IP) і всі аналітичні ендпоінти (до 120 req/min/IP) захищені глобальним тротлінгом.
+- Rate limiting: `/webhook` (до 50000 req/min/IP) і всі аналітичні ендпоінти (до 120 req/min/IP) захищені глобальним тротлінгом.
+- Batch persistence: Event processor буферизує до 100 івентів (або 200 мс) і зберігає їх пачкою через `createMany`, що суттєво зменшує навантаження на БД.
 
 ### ⚡ Performance
 
@@ -77,6 +78,15 @@ docker-compose down -v
 docker-compose logs -f app
 ```
 
+### ⚙️ Налаштування продуктивності
+
+| Змінна | Опис | Значення за замовчуванням |
+| --- | --- | --- |
+| `EVENT_BATCH_SIZE` | Максимальна кількість івентів у буфері перед вставкою в БД | `100` |
+| `EVENT_BATCH_FLUSH_MS` | Максимальна затримка (мс) перед примусовою вставкою, навіть якщо буфер не заповнений | `200` |
+
+> Обидва параметри застосовуються до воркера `EventProcessorController`. Зі збільшенням значень зростає пропускна здатність, але може збільшитись час між прийомом і збереженням івента.
+
 ## 📡 API Endpoints
 
 ### 1. Webhook (Ingestion)
@@ -95,6 +105,7 @@ docker-compose logs -f app
 Отримання агрегованої статистики.
 
 URL: `GET` ```http://localhost:3000/analytics/stats```
+
 - Rate limit: 120 запитів/хв на IP.
 
 Response Example:
@@ -140,6 +151,7 @@ Response Example:
 Отримання переліку помилок із можливістю фільтрації.
 
 URL: `GET` ```http://localhost:3000/analytics/errors```
+
 - Rate limit: 120 запитів/хв на IP.
 
 Query params:

@@ -20,7 +20,7 @@ import { ErrorLogService } from './services/error-log.service';
       {
         name: 'webhook',
         ttl: 60,
-        limit: 5000,
+        limit: 50000,
       },
       {
         name: 'analytics',

@@ -16,7 +16,7 @@ export class AppController {
   ) { }
 
   @Post('webhook')
-  @Throttle({ webhook: { limit: 5000, ttl: 60 } })
+  @Throttle({ webhook: { limit: 50000, ttl: 60 } })
   @HttpCode(HttpStatus.ACCEPTED)
   async handleWebhook(@Body() body: any) {
     const events = Array.isArray(body) ? body : [body];
