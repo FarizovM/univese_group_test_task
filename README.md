@@ -36,6 +36,7 @@
 - Automatic Restarts: Політики restart: always/on-failure для відновлення після збоїв.
 - Error Handling: Обробка дублікатів  та невалідних форматів дати без падіння воркера.
 - Logging: Логування і зберігання помилок, івентів які надходять.
+- Rate limiting: `/webhook` (до 5000 req/min/IP) і всі аналітичні ендпоінти (до 120 req/min/IP) захищені глобальним тротлінгом.
 
 ### ⚡ Performance
 
@@ -85,6 +86,7 @@ docker-compose logs -f app
 - URL: `POST` ```http://localhost:3000/webhook```
 - Body: `JSON` Object або Array of Objects.
 - Response: 202 Accepted
+- Rate limit: 2000 запитів/хв на IP (HTTP 429 при перевищенні).
 
 ---
 
@@ -93,6 +95,7 @@ docker-compose logs -f app
 Отримання агрегованої статистики.
 
 URL: `GET` ```http://localhost:3000/analytics/stats```
+- Rate limit: 120 запитів/хв на IP.
 
 Response Example:
 
@@ -137,6 +140,7 @@ Response Example:
 Отримання переліку помилок із можливістю фільтрації.
 
 URL: `GET` ```http://localhost:3000/analytics/errors```
+- Rate limit: 120 запитів/хв на IP.
 
 Query params:
 
@@ -205,6 +209,7 @@ Response Example:
 Отримання топ-країн за кількістю подій (10 записів).
 
 - URL: `GET` ```http://localhost:3000/analytics/top-countries```
+- Rate limit: 120 запитів/хв на IP.
 
 Query params:
 
@@ -231,6 +236,7 @@ Response Example:
 Отримання статистики за типами девайсів (device).
 
 - URL: `GET` ```http://localhost:3000/analytics/top-devices```
+- Rate limit: 120 запитів/хв на IP.
 
 Query params:
 
@@ -257,6 +263,7 @@ Response Example:
 Прогонить швидку перевірку сервісу та БД.
 
 - URL: `GET` ```http://localhost:3000/analytics/health```
+- Rate limit: 120 запитів/хв на IP.
 
 Response Examples:
 
@@ -280,6 +287,8 @@ Response Examples:
   "error": "Connection timeout"
 }
 ```
+
+> Всі аналітичні ендпоінти (health/errors/top-* тощо) розділяють спільний ліміт 120 запитів на хвилину з одного IP. При перевищенні повертається `429 Too Many Requests`.
 
 ## 🗄 Database & Management
 

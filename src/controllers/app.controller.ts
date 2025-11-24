@@ -4,6 +4,7 @@ import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { CreateEventDto } from '../dto/create-event.dto';
 import { ErrorLogService } from '../services/error-log.service';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller()
 export class AppController {
@@ -15,6 +16,7 @@ export class AppController {
   ) { }
 
   @Post('webhook')
+  @Throttle({ webhook: { limit: 5000, ttl: 60 } })
   @HttpCode(HttpStatus.ACCEPTED)
   async handleWebhook(@Body() body: any) {
     const events = Array.isArray(body) ? body : [body];

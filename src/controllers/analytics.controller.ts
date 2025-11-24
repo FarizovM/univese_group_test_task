@@ -1,5 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { PrismaService } from '../services/prisma.service';
+import { Throttle } from '@nestjs/throttler';
 
 interface TopCountryResult {
     country: string;
@@ -15,6 +16,7 @@ export class AnalyticsController {
     constructor(private readonly prisma: PrismaService) { }
 
     @Get('stats')
+    @Throttle({ analytics: { limit: 120, ttl: 60 } })
     async getStats() {
         try {
             const selectSourceEventType = await this.prisma.event.groupBy({
@@ -74,6 +76,7 @@ export class AnalyticsController {
     }
 
     @Get('errors')
+    @Throttle({ analytics: { limit: 120, ttl: 60 } })
     async getErrors(
         @Query('page') page?: string,
         @Query('level') level?: string,
@@ -134,6 +137,7 @@ export class AnalyticsController {
     }
 
     @Get('health')
+    @Throttle({ analytics: { limit: 120, ttl: 60 } })
     async health() {
         try {
             await this.prisma.$queryRaw`SELECT 1`;
@@ -144,6 +148,7 @@ export class AnalyticsController {
     }
 
     @Get('top-countries')
+    @Throttle({ analytics: { limit: 120, ttl: 60 } })
     async getTopCountries(
         @Query('limit') limit?: string,
     ) {
@@ -169,6 +174,7 @@ export class AnalyticsController {
     }
 
     @Get('top-devices')
+    @Throttle({ analytics: { limit: 120, ttl: 60 } })
     async getTopDevices(
         @Query('limit') limit?: string,
     ) {
