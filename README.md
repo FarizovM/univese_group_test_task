@@ -221,26 +221,27 @@ Database: analytics_db
 ## ERD
 
 ```mermaid
-"events" {
-  event_id text PK "Ідентифікатор події"
-  external_id text UNIQUE "Зовнішній ідентифікатор"
-  source text "Ресурс(додаток)"
-  event_type text "Тип події"
-  event_time timestamp_without_time_zone "Дата та час події"
-  payload jsonb "Метадані"
-  amount  numeric "Сума покупки"
-  created_at timestamp_without_time_zone "Дата створення запису в БД"
-}
-"error_logs" {
-  error_id text PK "Ідентифікатор помилки"
-  level text "Рівень помилки"
-  message text "Повадомлення"
-  context text "Назва контролера"
-  enent_id text "Ідентифікатор події(зовнішній)"
-  error_code text "Код помилки"
-  stack_trace text "Трасування"
-  metadata jsonb "Метадані події"
-  created_at timestamp_without_time_zone "Дата створення запису в БД"
-}
+erDiagram
+  "events" {
+    event_id text PK "Ідентифікатор події"
+    external_id text UK "Зовнішній ідентифікатор"
+    source text "Ресурс(додаток)"
+    event_type text "Тип події"
+    event_time timestamp_without_time_zone "Дата та час події"
+    payload jsonb "Метадані"
+    amount  numeric "Сума покупки"
+    created_at timestamp_without_time_zone "Дата створення запису в БД"
+  }
+  "error_logs" {
+    error_id text PK "Ідентифікатор помилки"
+    level text "Рівень помилки"
+    message text "Повадомлення"
+    context text "Назва контролера"
+    enent_id text "Ідентифікатор події(зовнішній)"
+    error_code text "Код помилки"
+    stack_trace text "Трасування"
+    metadata jsonb "Метадані події"
+    created_at timestamp_without_time_zone "Дата створення запису в БД"
+  }
 ```
 
