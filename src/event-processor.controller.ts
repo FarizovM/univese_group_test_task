@@ -2,6 +2,8 @@ import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { PrismaService } from './prisma.service';
 import { ErrorLogService } from './error-log.service';
+import { validateEventPayload } from './utils/event-validator';
+import { Event } from './types/events';
 
 @Controller()
 export class EventProcessorController {
@@ -14,57 +16,89 @@ export class EventProcessorController {
 
     @EventPattern('event.process')
     async handleEvent(@Payload() data: any) {
-        //this.logger.log(` Received event via NATS: ${data.eventId}`);
+        const validationResult = validateEventPayload(data);
+
+        if (!validationResult.valid) {
+            const message = `Invalid event payload: ${validationResult.errors.join(', ')}`;
+            this.logger.warn(message);
+            await this.errorLogService.logError({
+                level: 'warn',
+                message,
+                context: EventProcessorController.name,
+                eventId: data?.eventId,
+                metadata: { errors: validationResult.errors, rawPayload: data },
+            });
+            return;
+        }
+
+        const event = validationResult.event as Event;
 
         try {
 
-            let eventTime = new Date(data.timestamp);
+            let eventTime = new Date(event.timestamp);
 
             if (isNaN(eventTime.getTime())) {
-                this.logger.warn(`⚠️ Invalid timestamp for event ${data.eventId}: "${data.timestamp}". Using current time.`);
+                this.logger.warn(`⚠️ Invalid timestamp for event ${event.eventId}: "${event.timestamp}". Using current time.`);
                 eventTime = new Date();
             }
 
-            let amount = null;
-
-            if (data.source === 'tiktok' && data.data?.engagement?.purchaseAmount) {
-                amount = data.data.engagement.purchaseAmount;
-            } else if (data.source === 'facebook' && data.data?.engagement?.purchaseAmount) {
-                amount = data.data.engagement.purchaseAmount;
-            }
+            const amount = extractPurchaseAmount(event);
 
             await this.prisma.event.create({
                 data: {
-                    externalId: data.eventId,
-                    source: data.source,
-                    eventType: data.eventType,
+                    externalId: event.eventId,
+                    source: event.source,
+                    eventType: event.eventType,
                     eventTime: eventTime,
-                    payload: data,
-                    amount: amount ? parseFloat(amount) : null,
+                    payload: JSON.parse(JSON.stringify(event)),
+                    amount,
                 },
             });
-            this.logger.log(`✅ Successfully saved event: ${data.eventId}`);
+            this.logger.log(`✅ Successfully saved event: ${event.eventId}`);
 
         } catch (error) {
             if (error.code === 'P2002') {
-                this.logger.warn(`⚠️ Duplicate event skipped: ${data.eventId}`);
+                this.logger.warn(`⚠️ Duplicate event skipped: ${event.eventId}`);
                 await this.errorLogService.logError({
                     level: 'warn',
-                    message: `Duplicate event skipped: ${data.eventId}`,
+                    message: `Duplicate event skipped: ${event.eventId}`,
                     context: EventProcessorController.name,
-                    eventId: data.eventId,
+                    eventId: event.eventId,
                     errorCode: error.code,
-                    metadata: { eventType: data.eventType, source: data.source },
+                    metadata: { eventType: event.eventType, source: event.source },
                 });
             } else {
                 this.logger.error(`❌ Error saving event: ${error.message}`, error.stack);
                 await this.errorLogService.logException(
                     error,
                     EventProcessorController.name,
-                    data.eventId,
-                    { eventType: data.eventType, source: data.source },
+                    event.eventId,
+                    { eventType: event.eventType, source: event.source },
                 );
             }
         }
     }
+}
+
+function extractPurchaseAmount(event: Event): number | null {
+    if (event.source === 'facebook') {
+        const engagement = event.data.engagement;
+        if ('purchaseAmount' in engagement && engagement.purchaseAmount) {
+            return parseAmount(engagement.purchaseAmount);
+        }
+    }
+
+    if (event.source === 'tiktok') {
+        const engagement = event.data.engagement;
+        if ('purchaseAmount' in engagement && engagement.purchaseAmount) {
+            return parseAmount(engagement.purchaseAmount);
+        }
+    }
+
+    return null;
+}
+
+function parseAmount(amount: string): number | null {
+    const parsed = parseFloat(amount);
+    return Number.isFinite(parsed) ? parsed : null;
 }

@@ -256,7 +256,7 @@ Response Example:
 
 Прогонить швидку перевірку сервісу та БД.
 
-- URL: `GET` ```http://localhost:3000/health```
+- URL: `GET` ```http://localhost:3000/analytics/health```
 
 Response Examples:
 
